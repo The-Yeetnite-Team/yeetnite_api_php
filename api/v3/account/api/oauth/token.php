@@ -1,7 +1,6 @@
 <?php
 /** @noinspection DuplicatedCode */
 require_once 'database.php';
-require_once 'lib/date_utils.php';
 
 header('Content-Type: application/json');
 
@@ -24,13 +23,12 @@ if ($_POST['grant_type'] === 'password') {
         ));
         exit;
     }
-    
-    $token_expire = current_zulu_time(strtotime('+8 hours'));
+
     echo json_encode(
         array(
             'access_token' => $auth[0]['accessToken'],
             'expires_in' => 28800,
-            'expires_at' => $token_expire,
+            'expires_at' => '9999-12-02T01:12:00Z',
             'token_type' => 'bearer',
             'refresh_token' => $auth[0]['accessToken'],
             'refresh_expires' => 115200,
