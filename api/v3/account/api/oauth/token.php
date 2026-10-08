@@ -35,7 +35,7 @@ if ($_POST['grant_type'] === 'password') {
             'refresh_expires' => 115200,
             'refresh_expires_at' => current_zulu_time(strtotime('+32 hours')),
             'account_id' => $auth[0]['username'],
-            'client_id' => 'gameclient',
+            'client_id' => 'yeetnite-client',
             'internal_client' => true,
             'client_service' => 'fortnite',
             'displayName' => $auth[0]['username'],
@@ -47,16 +47,22 @@ if ($_POST['grant_type'] === 'password') {
     );
 } else {
     // client_credentials or default
-    $token_expire = current_zulu_time(strtotime('+8 hours'));
     echo json_encode(
         array(
             'access_token' => bin2hex(random_bytes(16)),
             'expires_in' => 28800,
-            'expires_at' => $token_expire,
+            'expires_at' => '9999-12-02T01:12:00Z',
             'token_type' => 'bearer',
-            'client_id' => 'gameclient',
+            'refresh_token' => '98f0a7388971a925',
+            'refresh_expires' => 28800,
+            'refresh_expires_at' => '9999-12-02T01:12:00Z',
+            'client_id' => 'yeetnite-client',
+            'account_id' => 'Yeetnite',
             'internal_client' => true,
-            'client_service' => 'fortnite'
+            'client_service' => 'fortnite',
+            'device_id' => 'yeetnitedeviceidlol',
+            'app' => 'fortnite',
+            'in_app_id' => 'Yeetnite'
         )
     );
 }
