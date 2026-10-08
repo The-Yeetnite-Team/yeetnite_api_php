@@ -10,7 +10,7 @@ if (str_contains($_SERVER['CONTENT_TYPE'], 'application/json'))
 else parse_str(file_get_contents('php://input'), $_POST);
 
 if ($_POST['grant_type'] === 'password') {
-    $auth = $database->select(array('username', 'id'), 'users', "WHERE username='{$_POST['username']}' AND password='{$_POST['password']}'");
+    $auth = $database->select(array('username', 'user_id'), 'users', "WHERE username='{$_POST['username']}' AND password='{$_POST['password']}'");
     if (!$auth) {
         http_response_code(400);
         echo json_encode(array(
@@ -27,11 +27,11 @@ if ($_POST['grant_type'] === 'password') {
     $token_expire = current_zulu_time(strtotime('+8 hours'));
     echo json_encode(
         array(
-            'access_token' => bin2hex(random_bytes(16)),
+            'access_token' => $auth[0]['accessToken'],
             'expires_in' => 28800,
             'expires_at' => $token_expire,
             'token_type' => 'bearer',
-            'refresh_token' => bin2hex(random_bytes(16)),
+            'refresh_token' => $auth[0]['accessToken'],
             'refresh_expires' => 115200,
             'refresh_expires_at' => current_zulu_time(strtotime('+32 hours')),
             'account_id' => $auth[0]['username'],
@@ -40,7 +40,7 @@ if ($_POST['grant_type'] === 'password') {
             'client_service' => 'fortnite',
             'displayName' => $auth[0]['username'],
             'app' => 'fortnite',
-            'in_app_id' => $auth[0]['id'],
+            'in_app_id' => $auth[0]['user_id'],
             'device_id' => '1',
             'auth_method' => 'password' // todo check tigase token type
         )
