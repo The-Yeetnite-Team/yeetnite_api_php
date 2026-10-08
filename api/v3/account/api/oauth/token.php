@@ -9,8 +9,9 @@ if (str_contains($_SERVER['CONTENT_TYPE'], 'application/json'))
 else parse_str(file_get_contents('php://input'), $_POST);
 
 if ($_POST['grant_type'] === 'password') {
-    $auth = $database->select(array('username', 'user_id'), 'users', "WHERE username='{$_POST['username']}'");
+    $auth = $database->select(array('password', 'user_id', 'accessToken'), 'users', "WHERE username='{$_POST['username']}'");
     if (!$auth || !password_verify($_POST['password'], $auth[0]['password'])) {
+       echo $auth[0];
         http_response_code(400);
         echo json_encode(array(
             'errorCode' => 'errors.com.epicgames.account.invalid_account_credentials',
@@ -32,12 +33,12 @@ if ($_POST['grant_type'] === 'password') {
             'token_type' => 'bearer',
             'refresh_token' => $auth[0]['accessToken'],
             'refresh_expires' => 115200,
-            'refresh_expires_at' => current_zulu_time(strtotime('+32 hours')),
-            'account_id' => $auth[0]['username'],
+            'refresh_expires_at' => '9999-12-02T01:12:00Z',
+            'account_id' => $_POST['username'],
             'client_id' => 'yeetnite-client',
             'internal_client' => true,
             'client_service' => 'fortnite',
-            'displayName' => $auth[0]['username'],
+            'displayName' => $_POST['username'],
             'app' => 'fortnite',
             'in_app_id' => $auth[0]['user_id'],
             'device_id' => '1',
