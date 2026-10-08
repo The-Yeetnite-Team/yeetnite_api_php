@@ -1,67 +1,62 @@
 <?php
+/** @noinspection DuplicatedCode */
 require_once 'database.php';
-require_once 'cache_provider.php';
+require_once 'lib/date_utils.php';
 
 header('Content-Type: application/json');
-
-// a user could change their password, we don't want to cache the old password
-header('X-Litespeed-Cache-Control: no-store');
 
 if (str_contains($_SERVER['CONTENT_TYPE'], 'application/json'))
     $_POST = json_decode(file_get_contents('php://input'), true) ?? array();
 else parse_str(file_get_contents('php://input'), $_POST);
 
-switch ($_POST['grant_type']) {
-    // user logged in through the in-game login screen
-    case 'password':
-        $user_data = $database->select(array('password', 'accessToken'), 'users', "WHERE username='{$_POST['username']}'");
-
-        // User failed authentication
-        if (!$user_data || !password_verify($_POST['password'], $user_data[0]['password'])) {
-            echo '{"success":false,"reason":"Invalid username or password"}';
-            return;
-        }
-
-        // Username and password are valid
-        echo generate_token_data($_POST['username'], $user_data[0]['accessToken']);
-        break;
-    // User used the auto-login feature in the launcher or a token through launch arguments
-    case 'external_auth':
-        $user_data = $database->select(array('username'), 'users', "WHERE accessToken='{$_POST['external_auth_token']}'");
-
-        // The Auth Token the client supplied doesn't exist
-        if (!$user_data) {
-            echo '{"success":false,"reason":"Invalid Auth Token during automatic login"}';
-            return;
-        }
-
-        // The Auth Token the client supplied is linked to a valid user
-        echo generate_token_data($user_data[0]['username'], $_POST['external_auth_token']);
-        break;
-    default:
-        echo generate_token_data('Yeetnite', bin2hex(random_bytes(8)));
-        break;
-}
-
-// Generate user's token data
-function generate_token_data(string $username, string $accessToken): string
-{
-    return json_encode(
+if ($_POST['grant_type'] === 'password') {
+    $auth = $database->select(array('username', 'id'), 'users', "WHERE username='{$_POST['username']}' AND password='{$_POST['password']}'");
+    if (!$auth) {
+        http_response_code(400);
+        echo json_encode(array(
+            'errorCode' => 'errors.com.epicgames.account.invalid_account_credentials',
+            'errorMessage' => 'Sorry the account credentials you are using are invalid',
+            'numericErrorCode' => 18031,
+            'originatingService' => 'com.epicgames.account.public',
+            'intent' => 'prod',
+            'error_description' => 'Sorry the account credentials you are using are invalid',
+            'error' => 'invalid_grant'
+        ));
+        exit;
+    }
+    $token_expire = current_zulu_time(strtotime('+8 hours'));
+    echo json_encode(
         array(
-            'access_token' => $accessToken,
+            'access_token' => bin2hex(random_bytes(16)),
             'expires_in' => 28800,
-            'expires_at' => '9999-12-02T01:12:00Z',
+            'expires_at' => $token_expire,
             'token_type' => 'bearer',
-            'refresh_token' => $accessToken,
-            'refresh_expires' => 28800,
-            'refresh_expires_at' => '9999-12-02T01:12:00Z',
-            'account_id' => $username,
-            'client_id' => 'yeetnite-client',
+            'refresh_token' => bin2hex(random_bytes(16)),
+            'refresh_expires' => 115200,
+            'refresh_expires_at' => current_zulu_time(strtotime('+32 hours')),
+            'account_id' => $auth[0]['username'],
+            'client_id' => 'gameclient',
             'internal_client' => true,
             'client_service' => 'fortnite',
-            'device_id' => 'yeetnitedeviceidlol',
+            'displayName' => $auth[0]['username'],
             'app' => 'fortnite',
-            'in_app_id' => $username
+            'in_app_id' => $auth[0]['id'],
+            'device_id' => '1',
+            'auth_method' => 'password' // todo check tigase token type
+        )
+    );
+} else {
+    // client_credentials or default
+    $token_expire = current_zulu_time(strtotime('+8 hours'));
+    echo json_encode(
+        array(
+            'access_token' => bin2hex(random_bytes(16)),
+            'expires_in' => 28800,
+            'expires_at' => $token_expire,
+            'token_type' => 'bearer',
+            'client_id' => 'gameclient',
+            'internal_client' => true,
+            'client_service' => 'fortnite'
         )
     );
 }

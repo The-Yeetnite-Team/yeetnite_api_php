@@ -11,11 +11,12 @@ $event_flag_season = "EventFlag.Season{$version_info['season']}";
 $current_time = current_zulu_time();
 $timeline = $cache_provider->get('fortnite_api_calendar_v1_timeline');
 
-//! These offsets will have to be replaced if the file changes
-$timeline = substr_replace($timeline, "\"eventType\":\"$event_flag_season\"", -714, 14);
-$timeline = substr_replace($timeline, "\"eventType\":\"EventFlag.{$version_info['lobby']}\"", -615, 14);
-$timeline = substr_replace($timeline, "\"seasonNumber\":{$version_info['season']}", -461, 17);
-$timeline = substr_replace($timeline, "\"seasonTemplateId\":\"AthenaSeason:athenaseason{$version_info['season']}\"", -443, 21);
-$timeline = substr_replace($timeline, "\"currentTime\":\"$current_time\"", -17, 16);
+$timeline = strtr($timeline, array(
+    '"{{CURRENT_TIME}}"' => '"' . $current_time . '"',
+    '{{SEASON_NUM}}' => $version_info['season'],
+    '"{{SEASON_TEMPLATE_ID}}"' => '"AthenaSeason:athenaseason' . $version_info['season'] . '"',
+    '"{{EVENT_TYPE_SEASON}}"' => '"' . $event_flag_season . '"',
+    '"{{EVENT_TYPE_LOBBY}}"' => '"EventFlag.' . $version_info['lobby'] . '"'
+));
 
 echo $timeline;

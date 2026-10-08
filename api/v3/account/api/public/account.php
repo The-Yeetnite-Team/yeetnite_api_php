@@ -71,7 +71,7 @@ if (isset($_GET['fullAccountInfo'])) {
             echo '[' . implode(',', array_map('generate_minimal_account_info', $usernames)) . ']';
         }
     } else {
-        echo generate_minimal_account_info($_GET['accountId']);
+        echo '[' . generate_minimal_account_info($_GET['accountId']) . ']';
     }
 }
 

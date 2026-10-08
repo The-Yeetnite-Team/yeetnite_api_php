@@ -43,31 +43,33 @@ switch ($_GET['profileId']) {
                     "WHERE user_id IN (SELECT user_id FROM users WHERE username = '{$_GET['accountId']}')"
                 )[0];
 
-                //! These offsets will have to be changed if the file changes
-                $athena_profile = substr_replace($athena_profile, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', 1, 12);
-                $athena_profile = substr_replace($athena_profile, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', -1911875, 12);
-                $athena_profile = substr_replace($athena_profile, "\"accountId\":\"{$_GET['accountId']}\"", -1911839, 14);
-                $athena_profile = substr_replace($athena_profile, "\"season_num\":{$version_info['season']}", -751, 14);
-
-                // TODO somehow manage to use substr_replace for all of them (strtr is quite slow in comparison)
                 $athena_profile = strtr(
                     $athena_profile,
                     array(
-                        '"banner_icon":""' => "\"banner_icon\":\"{$locker_data['banner_icon']}\"",
-                        '"banner_color":""' => "\"banner_color\":\"{$locker_data['banner_color']}\"",
-                        '"favorite_consumableemote":""' => "\"favorite_consumableemote\":\"{$locker_data['favorite_consumableemote']}\"",
-                        '"favorite_character":""' => "\"favorite_character\":\"{$locker_data['favorite_character']}\"",
-                        '"favorite_spray":[]' => "\"favorite_spray\":{$locker_data['favorite_spray']}",
-                        '"favorite_loadingscreen":""' => "\"favorite_loadingscreen\":\"{$locker_data['favorite_loadingscreen']}\"",
-                        '"favorite_hat":""' => "\"favorite_hat\":\"{$locker_data['favorite_hat']}\"",
-                        '"favorite_vehicledeco":""' => "\"favorite_vehicledeco\":\"{$locker_data['favorite_vehicledeco']}\"",
-                        '"favorite_backpack":""' => "\"favorite_backpack\":\"{$locker_data['favorite_backpack']}\"",
-                        '"favorite_dance":[]' => "\"favorite_dance\":{$locker_data['favorite_dance']}",
-                        '"favorite_skydivecontrail":""' => "\"favorite_skydivecontrail\":\"{$locker_data['favorite_skydivecontrail']}\"",
-                        '"favorite_pickaxe":""' => "\"favorite_pickaxe\":\"{$locker_data['favorite_pickaxe']}\"",
-                        '"favorite_glider":""' => "\"favorite_glider\":\"{$locker_data['favorite_glider']}\"",
-                        '"favorite_musicpack":""' => "\"favorite_musicpack\":\"{$locker_data['favorite_musicpack']}\"",
-                        '"favorite_itemwraps":[]' => "\"favorite_itemwraps\":{$locker_data['favorite_itemwrap']}"
+                        '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+                        '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+                        '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+                        '{{SEASON_NUM}}' => $version_info['season'],
+                        '"{{BANNER_ICON}}"' => '"' . $locker_data['banner_icon'] . '"',
+                        '"{{BANNER_COLOR}}"' => '"' . $locker_data['banner_color'] . '"',
+                        '"{{FAVORITE_VICTORYPOSE}}"' => '"' . $locker_data['favorite_victorypose'] . '"',
+                        '"{{FAVORITE_CONSUMABLEEMOTE}}"' => '"' . $locker_data['favorite_consumableemote'] . '"',
+                        '"{{FAVORITE_CALLINGCARD}}"' => '"' . $locker_data['favorite_callingcard'] . '"',
+                        '"{{FAVORITE_CHARACTER}}"' => '"' . $locker_data['favorite_character'] . '"',
+                        '{{FAVORITE_SPRAY}}' => $locker_data['favorite_spray'] ?: '[]',
+                        '"{{FAVORITE_LOADINGSCREEN}}"' => '"' . $locker_data['favorite_loadingscreen'] . '"',
+                        '"{{FAVORITE_HAT}}"' => '"' . $locker_data['favorite_hat'] . '"',
+                        '"{{FAVORITE_BATTLEBUS}}"' => '"' . $locker_data['favorite_battlebus'] . '"',
+                        '"{{FAVORITE_MAPMARKER}}"' => '"' . $locker_data['favorite_mapmarker'] . '"',
+                        '"{{FAVORITE_VEHICLEDECO}}"' => '"' . $locker_data['favorite_vehicledeco'] . '"',
+                        '"{{FAVORITE_BACKPACK}}"' => '"' . $locker_data['favorite_backpack'] . '"',
+                        '{{FAVORITE_DANCE}}' => $locker_data['favorite_dance'] ?: '[]',
+                        '"{{FAVORITE_SKYDIVECONTRAIL}}"' => '"' . $locker_data['favorite_skydivecontrail'] . '"',
+                        '"{{FAVORITE_PICKAXE}}"' => '"' . $locker_data['favorite_pickaxe'] . '"',
+                        '"{{FAVORITE_GLIDER}}"' => '"' . $locker_data['favorite_glider'] . '"',
+                        '"{{FAVORITE_MUSICPACK}}"' => '"' . $locker_data['favorite_musicpack'] . '"',
+                        '{{FAVORITE_ITEMWRAPS}}' => $locker_data['favorite_itemwrap'] ?: '[]',
+                        '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
                     )
                 );
 
@@ -90,11 +92,12 @@ switch ($_GET['profileId']) {
         switch ($RVN) {
             case -1:
                 $common_core = $cache_provider->get('fortnite_api_game_v2_profile_common_core');
-
-                $common_core = substr_replace($common_core, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', 1, 12);
-                $common_core = substr_replace($common_core, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', -39138, 12);
-                $common_core = substr_replace($common_core, "\"accountId\":\"{$_GET['accountId']}\"", -39102, 14);
-
+                $common_core = strtr($common_core, array(
+                    '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+                    '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+                    '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+                    '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+                ));
                 echo $common_core;
                 break;
             default:
@@ -114,22 +117,25 @@ switch ($_GET['profileId']) {
         $banner_info = $database->select(array('banner_icon', 'banner_color'), 'locker', "WHERE user_id IN (SELECT user_id FROM users WHERE username = '{$_GET['accountId']}')")[0];
 
         $common_public = $cache_provider->get('fortnite_api_game_v2_profile_common_public');
-
-        $common_public = substr_replace($common_public, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', -291, 12);
-        $common_public = substr_replace($common_public, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', -278, 12);
-        $common_public = substr_replace($common_public, "\"banner_color\": \"{$banner_info['banner_color']}\"", -142, 17);
-        $common_public = substr_replace($common_public, "\"banner_icon\": \"{$banner_info['banner_icon']}\"", -105, 16);
-        $common_public = substr_replace($common_public, '"serverTime":"' . $SERVER_TIME . '"', -36, 15);
+        $common_public = strtr($common_public, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '"{{BANNER_COLOR}}"' => '"' . $banner_info['banner_color'] . '"',
+            '"{{BANNER_ICON}}"' => '"' . $banner_info['banner_icon'] . '"',
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
 
         echo $common_public;
         break;
     case 'profile0':
         $profile0 = $cache_provider->get('fortnite_api_game_v2_profile_profile0');
-
-        $profile0 = substr_replace($profile0, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', 183, 12);
-        $profile0 = substr_replace($profile0, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', strpos($profile0, '"updated":""', 196), 12);
-        $profile0 = substr_replace($profile0, "\"accountId\":\"{$_GET['accountId']}\"", strpos($profile0, '"accountId":""', 234), 14);
-
+        $profile0 = strtr($profile0, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
         echo $profile0;
         break;
     case 'creative':
@@ -158,28 +164,28 @@ switch ($_GET['profileId']) {
                 )
             ),
             'profileCommandRevision' => 197,
-            'serverTime' => '',
+            'serverTime' => $SERVER_TIME,
             'responseVersion' => 1
         ));
         break;
     case 'collection_book_people0':
         $collection_book_people0 = $cache_provider->get('fortnite_api_game_v2_profile_collection_book_people0');
-
-        $collection_book_people0 = substr_replace($collection_book_people0, "\"accountId\":\"{$_GET['accountId']}\"", 219, 14);
-        $collection_book_people0 = substr_replace($collection_book_people0, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', strpos($collection_book_people0, '"created":""', 170), 12);
-        $collection_book_people0 = substr_replace($collection_book_people0, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', strpos($collection_book_people0, '"updated":""', 183), 12);
-        $collection_book_people0 = substr_replace($collection_book_people0, '"serverTime":"' . $SERVER_TIME . '"', strpos($collection_book_people0, '"serverTime":""', -36), 15);
-
+        $collection_book_people0 = strtr($collection_book_people0, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
         echo $collection_book_people0;
         break;
     case 'collection_book_schematics0':
         $collection_book_schematics0 = $cache_provider->get('fortnite_api_game_v2_profile_collection_book_schematics0');
-
-        $collection_book_schematics0 = substr_replace($collection_book_schematics0, "\"accountId\":\"{$_GET['accountId']}\"", 223, 14);
-        $collection_book_schematics0 = substr_replace($collection_book_schematics0, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', strpos($collection_book_schematics0, '"created":""', 174), 12);
-        $collection_book_schematics0 = substr_replace($collection_book_schematics0, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', strpos($collection_book_schematics0, '"updated":""', 187), 12);
-        $collection_book_schematics0 = substr_replace($collection_book_schematics0, '"serverTime":"' . $SERVER_TIME . '"', strpos($collection_book_schematics0, '"serverTime":""', -36), 15);
-
+        $collection_book_schematics0 = strtr($collection_book_schematics0, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
         echo $collection_book_schematics0;
         break;
     case 'campaign':
@@ -195,22 +201,22 @@ switch ($_GET['profileId']) {
         break;
     case 'metadata':
         $metadata = $cache_provider->get('fortnite_api_game_v2_profile_metadata');
-
-        $metadata = substr_replace($metadata, "\"accountId\":\"{$_GET['accountId']}\"", 213, 14);
-        $metadata = substr_replace($metadata, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', strpos($metadata, '"created":""', 161), 12);
-        $metadata = substr_replace($metadata, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', strpos($metadata, '"updated":""', 174), 12);
-        $metadata = substr_replace($metadata, '"serverTime":"' . $SERVER_TIME . '"', strpos($metadata, '"serverTime":""', -36), 15);
-
+        $metadata = strtr($metadata, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
         echo $metadata;
         break;
     case 'theater0':
         $theater0 = $cache_provider->get('fortnite_api_game_v2_profile_theater0');
-
-        $theater0 = substr_replace($theater0, "\"accountId\":\"{$_GET['accountId']}\"", 216, 14);
-        $theater0 = substr_replace($theater0, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', strpos($theater0, '"created":""', 163), 12);
-        $theater0 = substr_replace($theater0, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', strpos($theater0, '"updated":""', 176), 12);
-        $theater0 = substr_replace($theater0, '"serverTime":"' . $SERVER_TIME . '"', strpos($theater0, '"serverTime":""', -36), 15);
-
+        $theater0 = strtr($theater0, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
         echo $theater0;
         break;
     case 'outpost0':
@@ -248,12 +254,13 @@ switch ($_GET['profileId']) {
     case 'collections':
         $collections = $cache_provider->get('fortnite_api_game_v2_profile_collections');
         $version_info = fortnite_version_info($_SERVER['HTTP_USER_AGENT']);
-
-        $collections = substr_replace($collections, '"created":"' . $CREATED_LAST_LOGIN['created'] . '"', 186, 12);
-        $collections = substr_replace($collections, '"updated":"' . $CREATED_LAST_LOGIN['lastLogin'] . '"', -556, 12);
-        $collections = substr_replace($collections, "\"accountId\":\"{$_GET['accountId']}\"", -518, 14);
-        $collections = substr_replace($collections, "\"current_season\":{$version_info['season']}", -111, 18);
-        $collections = substr_replace($collections, '"serverTime":"' . $SERVER_TIME, -36, 14); // not sure why no ending quote is needed here :(
-
+        $collections = strtr($collections, array(
+            '"{{CREATED}}"' => '"' . $CREATED_LAST_LOGIN['created'] . '"',
+            '"{{UPDATED}}"' => '"' . $CREATED_LAST_LOGIN['lastLogin'] . '"',
+            '"{{ACCOUNT_ID}}"' => '"' . $_GET['accountId'] . '"',
+            '{{SEASON_NUM}}' => $version_info['season'],
+            '"{{SERVER_TIME}}"' => '"' . $SERVER_TIME . '"'
+        ));
         echo $collections;
+        break;
 }

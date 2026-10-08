@@ -19,12 +19,14 @@ const INDEXED_ITEMS_LIST = array('itemwrap', 'dance');
 $IS_INDEXED_ITEM = in_array($LOCKER_ITEM_NAME, INDEXED_ITEMS_LIST);
 
 $profile_changes = $_POST['itemToSlot'];
+$value_for_response = $profile_changes; // string value for response
 
 if ($IS_INDEXED_ITEM) {
     $current_locker_item = json_decode($database->select(array('favorite_' . $LOCKER_ITEM_NAME), 'locker',
         "WHERE user_id IN (SELECT user_id FROM users WHERE username = '{$_GET['accountId']}')")[0]['favorite_' . $LOCKER_ITEM_NAME], true);
     $current_locker_item[intval($_POST['indexWithinSlot'])] = $_POST['itemToSlot'];
     $profile_changes = json_encode($current_locker_item);
+    $value_for_response = $current_locker_item; // decoded array for response
 }
 
 $database->update('locker', array('favorite_' . $LOCKER_ITEM_NAME), array($profile_changes),
@@ -40,7 +42,7 @@ echo json_encode(array(
         array(
             'changeType' => 'statModified',
             'name' => 'favorite_' . $LOCKER_ITEM_NAME,
-            'value' => json_decode($profile_changes, true),
+            'value' => $value_for_response,
         )
     ),
     'profileCommandRevision' => 6895, // NOTE: this is really `athena.profileCommandRevision` (the athena profile)
