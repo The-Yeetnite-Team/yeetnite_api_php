@@ -10,8 +10,8 @@ if (str_contains($_SERVER['CONTENT_TYPE'], 'application/json'))
 else parse_str(file_get_contents('php://input'), $_POST);
 
 if ($_POST['grant_type'] === 'password') {
-    $auth = $database->select(array('username', 'user_id'), 'users', "WHERE username='{$_POST['username']}' AND password='{$_POST['password']}'");
-    if (!$auth) {
+    $auth = $database->select(array('username', 'user_id'), 'users', "WHERE username='{$_POST['username']}'");
+    if (!$auth || !password_verify($_POST['password'], $auth[0]['password'])) {
         http_response_code(400);
         echo json_encode(array(
             'errorCode' => 'errors.com.epicgames.account.invalid_account_credentials',
@@ -24,6 +24,7 @@ if ($_POST['grant_type'] === 'password') {
         ));
         exit;
     }
+    
     $token_expire = current_zulu_time(strtotime('+8 hours'));
     echo json_encode(
         array(
